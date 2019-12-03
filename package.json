@@ -1,0 +1,14 @@
+{
+  "name": "bahnscraper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "bahn_scraper.js",
+  "dependencies": {
+    "puppeteer": "^2.0.0",
+    "cheerio": "^1.0.0-rc.3",
+    "moment": "^2.24.0",
+    "mongodb": "^3.3.3"
+  },
+  "author": "Luke",
+  "license": "ISC"
+}
