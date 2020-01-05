@@ -16,17 +16,20 @@ var url = "https://reiseauskunft.bahn.de/bin/query.exe/dn?&start=1"
 console.log(url);
 
 const getHtmlWithPuppeteer = async (url) => {
-    var html;
-
     try{
-        const browser = await puppeteer.launch();   //for Raspberry Pi {executablePath: '/usr/bin/chromium-browser'}
+        var browser = await puppeteer.launch();   //for Raspberry Pi {executablePath: '/usr/bin/chromium-browser'}
         const page = await browser.newPage();
         await page.goto(url);
-        html = await page.content();
+        var html = await page.content();
         await browser.close();
     }
     catch(err) {
-        console.log("Error in puppeteer: " + err);
+        await browser.close();
+        throw "Error in puppeteer: " + err;
+    }
+
+    if(html == null) {
+        throw "ERROR: html is "+html;
     }
 
     return html;
@@ -39,9 +42,15 @@ const getDepartureAndDelay = (html) => {
     var departure = time.firstChild.nodeValue;
     var delay = time.firstChild.nextSibling.lastChild.nodeValue;
 
+    if(departure == null || delay == null){
+        throw "ERROR: departure is "+departure+", delay is "+delay;
+    }
     console.log(departure + "\n" + delay);
 
-    return [departure, delay];
+    return {
+        departure: departure,
+        delay: delay,
+    };
 }
 
 MongoClient.connect(dbURL, {useUnifiedTopology: true}, function(err, db) {
@@ -54,20 +63,22 @@ MongoClient.connect(dbURL, {useUnifiedTopology: true}, function(err, db) {
             console.log("DB connection established!");
 
             var html = await getHtmlWithPuppeteer(url);
-            var departureAndDelay = getDepartureAndDelay(html);
-
-            var departure = departureAndDelay[0];
-            var delay = departureAndDelay[1];
+            var {departure, delay} = getDepartureAndDelay(html);
 
             var dbEntry = { abfrage: moment().format("LLLL"),
                             abfahrt: departure,
-                            verspaetung: delay};
-            dbo.collection("times").insertOne(dbEntry, function(err, res) {
+                            verspaetung: delay
+                        };
+
+            dbo.collection("times").insertOne(dbEntry, function(err, res) {       
                 if(err) throw err;
                 console.log("1 document inserted!");
                 db.close();
                 console.log("DB connection closed!");
             });
-        })();
+        })().catch((err)=>{
+            db.close();
+            console.log(err);
+        });
     });
 });
