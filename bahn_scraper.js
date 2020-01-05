@@ -17,9 +17,9 @@ console.log(url);
 
 const getHtmlWithPuppeteer = async (url) => {
     var html;
-    
+
     try{
-        const browser = await puppeteer.launch({headless: false});   //for Raspberry Pi {executablePath: '/usr/bin/chromium-browser'}
+        const browser = await puppeteer.launch();   //for Raspberry Pi {executablePath: '/usr/bin/chromium-browser'}
         const page = await browser.newPage();
         await page.goto(url);
         html = await page.content();
@@ -53,11 +53,11 @@ MongoClient.connect(dbURL, {useUnifiedTopology: true}, function(err, db) {
             if(err) throw err;
             console.log("DB connection established!");
 
-            let html = await getHtmlWithPuppeteer(url);
-            let departureAndDelay = getDepartureAndDelay(html);
+            var html = await getHtmlWithPuppeteer(url);
+            var departureAndDelay = getDepartureAndDelay(html);
 
-            let departure = departureAndDelay[0];
-            let delay = departureAndDelay[1];
+            var departure = departureAndDelay[0];
+            var delay = departureAndDelay[1];
 
             var dbEntry = { abfrage: moment().format("LLLL"),
                             abfahrt: departure,
