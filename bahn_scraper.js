@@ -3,24 +3,28 @@ const cheerio = require("cheerio");
 const moment = require("moment");
 const MongoClient = require('mongodb').MongoClient;
 
-const dbURL = "mongodb://localhost:27017/mydb";
+const dbURL = "mongodb://localhost:27017";
+const dbName = "mydb";
 const startStation = "horrem";
 const endStation ="Aachen";
 
 moment.locale("de");
-var url = "https://reiseauskunft.bahn.de/bin/query.exe/dn?&start=1"
+
+const url = "https://reiseauskunft.bahn.de/bin/query.exe/dn?&start=1"
             + "&S=" + startStation
             + "&Z=" + endStation
             + "&date=" + moment().format("D.M.Y")
             + "&time=" + moment().format("LT");
 console.log(url);
-
+            
 const getHtmlWithPuppeteer = async (url) => {
+    let browser;
+    let html;
     try{
-        var browser = await puppeteer.launch();   //for Raspberry Pi {executablePath: '/usr/bin/chromium-browser'}
+        browser = await puppeteer.launch();   //for Raspberry Pi {executablePath: '/usr/bin/chromium-browser'}
         const page = await browser.newPage();
         await page.goto(url);
-        var html = await page.content();
+        html = await page.content();
         await browser.close();
     }
     catch(err) {
@@ -29,18 +33,18 @@ const getHtmlWithPuppeteer = async (url) => {
     }
 
     if(html == null) {
-        throw "ERROR: html is "+html;
+        throw "ERROR: html is " + html;
     }
 
     return html;
 };
 
 const getDepartureAndDelay = (html) => {
-    var $ = cheerio.load(html);
+    const $ = cheerio.load(html);
 
-    var time = $(".time").eq(1)[0];
-    var departure = time.firstChild.nodeValue;
-    var delay = time.firstChild.nextSibling.lastChild.nodeValue;
+    const time = $(".time").eq(1)[0];
+    const departure = time.firstChild.nodeValue;
+    const delay = time.firstChild.nextSibling.lastChild.nodeValue;
 
     if(departure == null || delay == null){
         throw "ERROR: departure is "+departure+", delay is "+delay;
@@ -53,32 +57,31 @@ const getDepartureAndDelay = (html) => {
     };
 }
 
-MongoClient.connect(dbURL, {useUnifiedTopology: true}, function(err, db) {
+const client = new MongoClient(dbURL, {useUnifiedTopology: true});
+
+client.connect((err) => {
     if(err) throw err;
-    var dbo = db.db("mydb");
+    console.log('DB connection established!');
+    const db = client.db(dbName);
 
-    dbo.createCollection("times", function(err, res) {
-        (async ()=> {
-            if(err) throw err;
-            console.log("DB connection established!");
-
-            var html = await getHtmlWithPuppeteer(url);
-            var {departure, delay} = getDepartureAndDelay(html);
-
-            var dbEntry = { abfrage: moment().format("LLLL"),
-                            abfahrt: departure,
-                            verspaetung: delay
-                        };
-
-            dbo.collection("times").insertOne(dbEntry, function(err, res) {       
-                if(err) throw err;
-                console.log("1 document inserted!");
-                db.close();
-                console.log("DB connection closed!");
-            });
-        })().catch((err)=>{
-            db.close();
-            console.log(err);
-        });
+    db.createCollection("times", (err, res) => {
+        if (err) return;
     });
+
+    (async () => {
+        const html = await getHtmlWithPuppeteer(url);
+        const {departure, delay} = getDepartureAndDelay(html);
+        const dbEntry = {
+            abfrage: moment().format('LLLL'),
+            abfahrt: departure,
+            verspaetung: delay,
+        };
+
+        db.collection("times").insertOne(dbEntry, (err, res) => {
+            if (err) throw err;
+            console.log("1 document inserted!");
+        });
+        
+        client.close();
+    })();
 });
