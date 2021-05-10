@@ -55,7 +55,7 @@ const getDepartureAndDelay = (html) => {
         departure: departure,
         delay: delay,
     };
-}
+};
 
 const client = new MongoClient(dbURL, {useUnifiedTopology: true});
 
@@ -85,3 +85,5 @@ client.connect((err) => {
         client.close();
     })();
 });
+
+module.exports = { getHtmlWithPuppeteer, getDepartureAndDelay };
