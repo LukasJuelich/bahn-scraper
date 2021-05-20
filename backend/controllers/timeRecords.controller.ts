@@ -17,7 +17,7 @@ const createRecord = (req: Request, res: Response) => {
         if(err) {
             res.status(500).send({
                 message:    err.message
-            })
+            });
         }
         else{
             res.status(201).end();
@@ -32,7 +32,7 @@ const findRecordById = (req: Request, res: Response) => {
         if(err) {
             res.status(500).send({
                 message:    err.message
-            })
+            });
         }
         else {
             res.send(result);
@@ -40,28 +40,60 @@ const findRecordById = (req: Request, res: Response) => {
     });
 }
 
-const findRecords = (req: Request, res: Response) => {
-    const timeOfScrape:	any = req.query.timeOfScrape;
-    const startStation: any = req.query.startStation;
-    const endStation:   any = req.query.endStation;
+interface TimeOfScrapeFilter {
+    $gte?:  Date;
+    $lte?:  Date;
+}
 
-    const filter = {
-        "timeOfScrape":   timeOfScrape,
-        "startStation":   startStation,
-        "endStation":     endStation
+interface Filter {
+    startStation:   string;
+    endStation:     string;
+    timeOfScrape?:  TimeOfScrapeFilter;
+}
+
+const findRecordsFilter = (req: Request): Filter => {
+    let startDate:      any = req.query.startDate;
+    let endDate:        any = req.query.endDate;
+    const startStation: any = req.params.startStation;
+    const endStation:   any = req.params.endStation;
+
+    const filter: Filter = {
+        startStation:   startStation,
+        endStation:     endStation,
     }
+
+    let timeOfScrapeFilter: TimeOfScrapeFilter = {};
+    if(startDate) {
+        startDate = new Date(startDate);
+        timeOfScrapeFilter.$gte = startDate;
+        filter.timeOfScrape = timeOfScrapeFilter;
+    }
+    if(endDate) {
+        endDate = new Date(endDate);
+        timeOfScrapeFilter.$lte = endDate;
+        filter.timeOfScrape = timeOfScrapeFilter;
+    }
+
+    return filter;
+}
+
+
+const findRecords = (req: Request, res: Response) => {
+    const filter: Filter = findRecordsFilter(req);
 
     timeRecord.find(filter).exec((err, result) => {
         if(err) {
             res.status(500).send({
                 message:    err.message
-            })
+            });
         }
         else {
             res.send(result);
+            console.log("queried db!");
         }
     });
 }
+
 
 const findAllRecords = (req: Request, res: Response) => {
     const key: any = req.query.key;
@@ -72,7 +104,7 @@ const findAllRecords = (req: Request, res: Response) => {
         if(err) {
             res.status(500).send({
                 message:    err.message
-            })
+            });
         }
         else {
             res.send(result);
@@ -91,7 +123,7 @@ const deleteRecordById = (req: Request, res: Response) => {
         if(err) {
             res.status(500).send({
                 message:    err.message
-            })
+            });
         }
         else {
             res.send(result);

@@ -3,11 +3,11 @@ import { createRecord, findRecordById, findAllRecords, deleteRecordById, findRec
 
 let crudRoutes = express.Router();
 
-crudRoutes.post("/", createRecord);
+// crudRoutes.post("/", createRecord);
 
 crudRoutes.get("/:id", findRecordById);
 
-crudRoutes.get("/", findRecords);
+crudRoutes.get("/:startStation/:endStation", findRecords);
 
 crudRoutes.delete("/:id", deleteRecordById);
 
