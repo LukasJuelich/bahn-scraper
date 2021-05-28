@@ -2,9 +2,10 @@ import * as express from "express";
 import { Request, Response, } from "express";
 import * as bodyParser from "body-parser";
 import * as cors from "cors";
-import { connect } from "mongoose"
-import { dbUrl } from "./config/db.config"
-import { crudRoutes } from "./routes/timeRecords.routes";
+import { connect } from "mongoose";
+import { dbUrl } from "./config/db.config";
+import { crudTimeRecords } from "./routes/timeRecords.routes";
+import { crudTrainConnection } from "./routes/trainConnections.routes";
 
 const app = express();
 
@@ -37,4 +38,5 @@ app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}.`);
 });
 
-app.use('/records/', crudRoutes);
+app.use('/records/', crudTimeRecords);
+app.use('/trainConnection/', crudTrainConnection)

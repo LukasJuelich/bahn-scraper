@@ -89,7 +89,6 @@ const findRecords = (req: Request, res: Response) => {
         }
         else {
             res.send(result);
-            console.log("queried db!");
         }
     });
 }

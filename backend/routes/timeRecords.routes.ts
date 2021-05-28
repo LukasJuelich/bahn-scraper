@@ -1,16 +1,16 @@
 import * as express from "express";
 import { createRecord, findRecordById, findAllRecords, deleteRecordById, findRecords } from "../controllers/timeRecords.controller";
 
-let crudRoutes = express.Router();
+let crudTimeRecords = express.Router();
 
-// crudRoutes.post("/", createRecord);
+// crudTimeRecords.post("/", createRecord);
 
-crudRoutes.get("/:id", findRecordById);
+crudTimeRecords.get("/:id", findRecordById);
 
-crudRoutes.get("/:startStation/:endStation", findRecords);
+crudTimeRecords.get("/:startStation/:endStation", findRecords);
 
-crudRoutes.delete("/:id", deleteRecordById);
+crudTimeRecords.delete("/:id", deleteRecordById);
 
 export {
-    crudRoutes
+    crudTimeRecords
 };
