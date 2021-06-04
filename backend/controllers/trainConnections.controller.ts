@@ -46,8 +46,8 @@ interface startEndFilter {
 }
 
 const findTrainConnectionsFilter = (req: Request): startEndFilter => {
-    const startStation: any = req.query.startStation;
-    const endStation:   any = req.query.endStation;
+    const startStation: any = req.query.startstation;
+    const endStation:   any = req.query.endstation;
 
     let filter: startEndFilter = {};
 
@@ -57,7 +57,6 @@ const findTrainConnectionsFilter = (req: Request): startEndFilter => {
     if(endStation) {
         filter.endStation = endStation;
     }
-
     return filter;
 }
 

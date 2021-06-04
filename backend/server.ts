@@ -1,19 +1,22 @@
-import * as express from "express";
+import express from "express";
 import { Request, Response, } from "express";
-import * as bodyParser from "body-parser";
-import * as cors from "cors";
+import bodyParser from "body-parser";
+import cors from "cors";
 import { connect } from "mongoose";
-import { dbUrl } from "./config/db.config";
 import { crudTimeRecords } from "./routes/timeRecords.routes";
 import { crudTrainConnection } from "./routes/trainConnections.routes";
+import dotenv from "dotenv"
+
+dotenv.config({path: "./config/.env"});
+const corsOrigin: any = process.env.CORS_ORIGIN;
+const dbUrl: any = process.env.DB_URL;
+if(!corsOrigin || !dbUrl) {
+	throw new Error("Variables undefined in .env!");
+}
 
 const app = express();
 
-let corsOptions: cors.CorsOptions = {
-    origin: "http://localhost:8081"
-};
-
-app.use(cors(corsOptions));
+app.use(cors(corsOrigin));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -25,8 +28,7 @@ connect(dbUrl, {
 		console.log("Connected to database!");
 	})
 	.catch(err => {
-		console.log("Connecting to database failed!", err);
-		process.exit(1);
+		throw new Error("Connecting to database failed!" + err);
 	})
 
 	app.get("/", (req: Request, res: Response) => {
@@ -39,4 +41,4 @@ app.listen(PORT, () => {
 });
 
 app.use('/records/', crudTimeRecords);
-app.use('/trainConnection/', crudTrainConnection)
+app.use('/trainconnections/', crudTrainConnection);
