@@ -1,3 +1,7 @@
 node_modules
 /*.lnk
 /backend/.vscode
+/backend/dist
+/.vscode
+/backend/config/.env
+/frontend/.env
