@@ -1,47 +1,57 @@
 <template>
-    <div class="grid justify-items-center">
-        <div class="pb-10">
-            <p class="text-lg pb-2">Choose Timeframe:</p>
-            <span class="pr-5">From: 
-                <input type="date" v-model="startDate" @change="refreshList" class="">
-            </span>
-            <span>To:
-                <input type="date" v-model="endDate" @change="refreshList" class="">
-            </span>
+    <div class="grid justify-items-center space-y-3">
+        <div class="space-y-4">
+            <div class="text-lg pb-2">
+                Choose Timeframe:
+            </div>
+            <div class="space-x-8 sm:space-x-16">
+                <span>
+                    From:
+                    <input type="date" v-model="startDate" @change="refreshList" class="">
+                </span>
+                <span>
+                    To:
+                    <input type="date" v-model="endDate" @change="refreshList" class="">
+                </span>
+            </div>
+            <div class="space-x-10">
+                <button type="button" class="btn btn-red" @click="prevoiusPage">
+                    &lt;
+                </button>
+                <button type="button" class="btn btn-red" @click="nextPage">
+                    &gt;
+                </button>
+            </div>
         </div>
-        <p class="space-x-10 pb-2">
-            <button type="button" class="btn btn-red" @click="prevoiusPage">&lt;</button>
-            <button type="button" class="btn btn-red" @click="nextPage">&gt;</button>
-        </p>
         <table class="table-auto shadow-sm">
             <tr style="background:#E7E7E7">
-                <th class="px-4 py-2">Time of scrape</th>
-                <th class="px-4 py-2">Planned Departure</th>
-                <th class="px-4 py-2">Delay</th>
-                <th class="px-4 py-2">Difference</th>
+                <th class="sm:px-4 px-2 py-2">Time of scrape</th>
+                <th class="sm:px-4 px-2 py-2">Planned Departure</th>
+                <th class="sm:px-4 px-2 py-2">Delay</th>
+                <th class="sm:px-4 px-2 py-2">Difference</th>
             </tr>
             <tr class="shadow-sm cursor-pointer hover:bg-gray-100"
                 v-for="(record, index) in timeRecordsPage"
                 :key="index"
                 >
-                <td class="px-4 py-2">
+                <td class="sm:px-4 px-2 py-2">
                     {{ format(new Date(record.timeOfScrape), 'HH:mm dd.MM.yyy' ) }}
                 </td>
-                <td class="text-gray-600 px-4 py-2">
+                <td class=" sm:px-4 px-2 py-2">
                     {{ format(new Date(record.departure), 'HH:mm' ) }}
                 </td>
-                <td class="px-4 py-2">
+                <td class="sm:px-4 px-2 py-2">
                     {{ format(new Date(record.delay), 'HH:mm') }}
                 </td>
-                <td class="px-4 py-2 text-red-700">
+                <td class="sm:px-4 px-2 py-2 text-red-700">
                     {{ format(new Date(record.delay) - new Date(record.departure), 'mm') }}
                 </td>
             </tr>
         </table>
-        <p class="space-x-10 pt-2">
+        <div class="space-x-10">
             <button type="button" class="btn btn-red" @click="prevoiusPage">&lt;</button>
             <button type="button" class="btn btn-red" @click="nextPage">&gt;</button>
-        </p>
+        </div>
     </div>
 </template>
 

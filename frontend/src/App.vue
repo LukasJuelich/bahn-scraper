@@ -1,21 +1,21 @@
 <template>
-	<div class="bg-white w-auto shadow-2xl">
-		<div class="bg-white h-10" />
+	<div class="bg-white sm:mx-5 md:mx-16 lg:mx-32 xl:mx-40 2xl:mx-52 shadow-2xl">
+		<div class="bg-white sm:h-10" />
 		<nav 
-			class="text-left p-5 mb-5 shadow-lg" 
+			class="text-center sm:py-5 py-2 shadow-lg" 
 			style="background:#FF0000"
 			>
 			<ul>
 				<li>
 					<router-link 
-						to="/records" 
+						to="/" 
 						class="text-white text-3xl filter drop-shadow-lg">
 							Bahn Stats
 					</router-link>
 				</li>
 			</ul>
 		</nav>
-		<div class="container h-screen">
+		<div>
 			<router-view class="p-5"/>
 		</div>
 	</div>

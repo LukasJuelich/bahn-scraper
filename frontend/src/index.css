@@ -1,3 +1,11 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.btn {
+
+    @apply font-bold py-1 px-3 rounded bg-gray-300 text-white;
+}
+.btn:hover {
+    @apply bg-gray-400;
+}
