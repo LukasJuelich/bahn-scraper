@@ -5,12 +5,12 @@ const router = createRouter({
     routes: [
         {
             path:       "/",
-            alias:       "/connections",
-            name:       "record-data",
-            component:  () => import("./components/TrainConnections.vue"),
+            alias:       "/trainconnections",
+            name:       "connections",
+            component:  () => import("./components/TrainConnectionsList.vue"),
         },
         {
-            path:      "/:startStation/:endStation",
+            path:      "/records/:startStation/:endStation",
             name:       "records",
             component:  () => import("./components/TimeRecordsList.vue"),
         },
