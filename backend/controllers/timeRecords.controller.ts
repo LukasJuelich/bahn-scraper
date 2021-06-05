@@ -52,10 +52,10 @@ interface Filter {
 }
 
 const findRecordsFilter = (req: Request): Filter => {
-    let startDate:      any = req.query.startdate;
-    let endDate:        any = req.query.enddate;
-    const startStation: any = req.params.startstation;
-    const endStation:   any = req.params.endstation;
+    let startDate:      any = req.query.startDate;
+    let endDate:        any = req.query.endDate;
+    const startStation: any = req.params.startStation;
+    const endStation:   any = req.params.endStation;
 
     const filter: Filter = {
         startStation:   startStation,

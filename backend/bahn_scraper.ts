@@ -1,35 +1,22 @@
-import * as puppeteer from "puppeteer";
+import puppeteer from "puppeteer";
 import * as cheerio from "cheerio";
 import { connect, disconnect} from "mongoose";
-import { dbUrl } from "./config/db.config";
 import { timeRecord } from "./models/timeRecord";
 import { trainConnection } from "./models/trainConnections";
+import dotenv from "dotenv";
+import { format } from "date-fns";
 
-const startStation: string = "Horrem";
-const endStation: string ="Aachen";
-
-// const trainConnections = trainConnection.find();
-// console.log(trainConnections);
+dotenv.config({path: "./config/.env"});
+const dbUrl: any = process.env.DB_URL;
 
 const timeNow = new Date();
 
-const date =    ((timeNow.getDate() < 10)? "0":"") + timeNow.getDate()+ "." + 
-                ((timeNow.getMonth()+1 < 10)? "0":"") + (timeNow.getMonth() + 1)+ "." + 
-                timeNow.getFullYear();
-const time =    ((timeNow.getHours() < 10)? "0":"") + timeNow.getHours()+ ":" + 
-                ((timeNow.getMinutes() < 10)? "0":"") + timeNow.getMinutes();
+const getScrapeUrl = (startStation: string, endStation: string): string => {
+    const date = format(timeNow, 'dd.MM.yyyy');
+    const time = format(timeNow, 'HH:mm');
 
-
-const url: string = "https://reiseauskunft.bahn.de/bin/query.exe/dn?&start=1"
-            + "&S=" + startStation
-            + "&Z=" + endStation
-            + "&date=" + date
-            + "&time=" + time;
-
-console.log(url);
-
-const getScrapeUrl = () => {
-    
+    return `https://reiseauskunft.bahn.de/bin/query.exe/dn?&start=1\
+&S=${startStation}&Z=${endStation}&date=${date}&time=${time}`;
 }
 
 const getHtmlWithPuppeteer = async (url: string) => {
@@ -45,11 +32,11 @@ const getHtmlWithPuppeteer = async (url: string) => {
     catch(err) {
         if(browser)
             await browser.close();
-        throw "Error in puppeteer: " + err;
+        throw new Error("Error in puppeteer: " + err);
     }
 
-    if(html == null) {
-        throw "ERROR: html is " + html;
+    if(!html) {
+        throw new Error("ERROR: html is " + html);
     }
 
     return html;
@@ -60,13 +47,16 @@ const getDepartureAndDelay = (html: string) => {
 
     const time: any = $(".time").eq(1)[0];
     const departure: string = time.firstChild.nodeValue;
-    const delay: string = time.firstChild.nextSibling.lastChild.nodeValue;
+    let delay: string = departure;
 
-    if(departure == null || delay == null){
-        throw "ERROR: departure is "+departure+", delay is "+delay;
+    if(!departure) {
+        throw new Error(`ERROR: departure is ${departure}, delay is ${delay}`);
+    }
+    if( time.firstChild.nextSibling.lastChild.nodeValue ) {
+        delay = time.firstChild.nextSibling.lastChild.nodeValue;
     }
 
-    const departureDate = new Date();
+    let departureDate = new Date();
     departureDate.setHours(
         Number(departure.split(":")[0]), 
         Number(departure.split(":")[1]),
@@ -74,7 +64,7 @@ const getDepartureAndDelay = (html: string) => {
         0
     );
 
-    const delayDate = new Date();
+    let delayDate = new Date();
     delayDate.setHours(
         Number(delay.split(":")[0]), 
         Number(delay.split(":")[1]),
@@ -94,37 +84,39 @@ connect(dbUrl, {
     })
     .then(() => {
         (async() => {
-
             const trainConnections = await trainConnection.find();
-            trainConnections.forEach(connection => {
-               console.log(connection.startStation); 
+
+            await Promise.all(trainConnections.map(async (connection) => {
+                const html: string = await getHtmlWithPuppeteer(
+                                        getScrapeUrl(
+                                            connection.startStation,
+                                            connection.endStation
+                                        )
+                                    );
+
+                const {departure, delay} = getDepartureAndDelay(html);
+
+                const record = new timeRecord({
+                    timeOfScrape:   timeNow,
+                    startStation:   connection.startStation,
+                    endStation:     connection.endStation,
+                    departure:      departure,
+                    delay:          delay,
+                });
+
+                await record.save();
+            }))
+            .then(() => {
+                disconnect();
+            })
+            .catch((err: Error) => {
+                // throw new Error(err.message);
+                console.log(err);
             });
-            
-
-            // const html: string = await getHtmlWithPuppeteer(url);
-            // const {departure, delay} = getDepartureAndDelay(html);
-            // console.log(timeNow + "\n" + departure + "\n" + delay + "\n");
-
-            // const record = new timeRecord({
-            //     timeOfScrape:   timeNow,
-            //     startStation:   startStation,
-            //     endStation:     endStation,
-            //     departure:      departure,
-            //     delay:          delay,
-            // })
-            // record.save(err => {
-            //     if(err) {
-            //         throw err;
-            //     }
-            //     else {
-            //         console.log("Saved to db!!");
-            //     }
-            //     disconnect();
-            // })
-        })()
+        })();
     })
-    .catch(err => {
-		console.log(err);
-    })
+    .catch((err: Error) => {
+		throw new Error(err.message);
+    });
 
 module.exports = { getHtmlWithPuppeteer, getDepartureAndDelay };
