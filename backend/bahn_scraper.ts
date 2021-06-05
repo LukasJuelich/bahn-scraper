@@ -15,8 +15,11 @@ const getScrapeUrl = (startStation: string, endStation: string): string => {
     const date = format(timeNow, 'dd.MM.yyyy');
     const time = format(timeNow, 'HH:mm');
 
-    return `https://reiseauskunft.bahn.de/bin/query.exe/dn?&start=1\
-&S=${startStation}&Z=${endStation}&date=${date}&time=${time}`;
+    let url = `https://reiseauskunft.bahn.de/bin/query.exe/dn?&start=1\
+&S=${startStation}&Z=${endStation}&date=${date}&time=${time}`
+
+    // console.log(url);
+    return url;
 }
 
 const getHtmlWithPuppeteer = async (url: string) => {
@@ -52,7 +55,7 @@ const getDepartureAndDelay = (html: string) => {
     if(!departure) {
         throw new Error(`ERROR: departure is ${departure}, delay is ${delay}`);
     }
-    if( time.firstChild.nextSibling.lastChild.nodeValue ) {
+    if( time.firstChild.nextSibling && time.firstChild.nextSibling.lastChild.nodeValue ) {
         delay = time.firstChild.nextSibling.lastChild.nodeValue;
     }
 
@@ -110,8 +113,7 @@ connect(dbUrl, {
                 disconnect();
             })
             .catch((err: Error) => {
-                // throw new Error(err.message);
-                console.log(err);
+                throw new Error(err.message);
             });
         })();
     })
