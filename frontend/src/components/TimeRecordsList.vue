@@ -4,7 +4,7 @@
             <div class="text-lg pb-2">
                 Choose Timeframe:
             </div>
-            <div class="space-x-8 sm:space-x-16">
+            <div class="space-x-2 sm:space-x-16">
                 <span>
                     From:
                     <input type="date" v-model="startDate" @change="refreshList" class="">
@@ -15,12 +15,8 @@
                 </span>
             </div>
             <div class="space-x-10">
-                <button type="button" class="btn btn-red" @click="prevoiusPage">
-                    &lt;
-                </button>
-                <button type="button" class="btn btn-red" @click="nextPage">
-                    &gt;
-                </button>
+                <button type="button" class="btn" @click="prevoiusPage">&lt;</button>
+                <button type="button" class="btn" @click="nextPage">&gt;</button>
             </div>
         </div>
         <table class="table-auto shadow-sm">
@@ -49,8 +45,8 @@
             </tr>
         </table>
         <div class="space-x-10">
-            <button type="button" class="btn btn-red" @click="prevoiusPage">&lt;</button>
-            <button type="button" class="btn btn-red" @click="nextPage">&gt;</button>
+            <button type="button" class="btn" @click="prevoiusPage">&lt;</button>
+            <button type="button" class="btn" @click="nextPage">&gt;</button>
         </div>
     </div>
 </template>
@@ -93,6 +89,7 @@ export default defineComponent({
             )
             .then((res: ResponseData) => {
                 this.timeRecords = res.data;
+                this.timeRecords.reverse();
             })
             .catch((err: Error) => {
                 console.log(err);
@@ -105,7 +102,6 @@ export default defineComponent({
                     this.paginate();
                 });
         },
-        
         paginate() {
             this.timeRecordsPage = this.timeRecords.slice(
                 (this.currentPage-1) * this.pageSize, 
