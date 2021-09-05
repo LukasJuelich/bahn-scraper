@@ -24,4 +24,6 @@ interface ITimeRecord extends Document {
 
 let recordModel: Model<ITimeRecord> = model<ITimeRecord>("TimeRecord", recordSchema);
 
-export { recordModel as timeRecord };
+export { recordModel as timeRecord,
+          ITimeRecord,
+       };

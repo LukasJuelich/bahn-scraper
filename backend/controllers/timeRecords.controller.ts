@@ -1,5 +1,6 @@
-import { timeRecord } from "../models/timeRecord"
+import { timeRecord, ITimeRecord } from "../models/timeRecord"
 import { Request, Response} from "express";
+import { differenceInMinutes, } from "date-fns";
 
 const createRecord = (req: Request, res: Response) => {
     if (!req.body.timeOfScrape) {
@@ -77,6 +78,17 @@ const findRecordsFilter = (req: Request): Filter => {
     return filter;
 }
 
+const getClosestEntriesToDeparture = (timeRecords: Array<ITimeRecord>): Array<ITimeRecord> => {
+    let result: Array<ITimeRecord> = [];
+    timeRecords.forEach( el => {
+        let diff = differenceInMinutes(el.departure, el.timeOfScrape);
+        if( diff < 4 && diff >= 0 ) {
+            result.push(el);
+        }
+    });
+    return result;
+}
+
 
 const findRecords = (req: Request, res: Response) => {
     const filter: Filter = findRecordsFilter(req);
@@ -88,6 +100,7 @@ const findRecords = (req: Request, res: Response) => {
             });
         }
         else {
+            result = getClosestEntriesToDeparture(result);
             res.send(result);
         }
     });
