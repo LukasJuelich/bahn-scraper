@@ -2,7 +2,7 @@
     <div class="grid justify-items-center space-y-3">
         <div class="space-y-4">
             <div class="text-lg pb-2">
-                Choose Timeframe:
+                Choose timeframe:
             </div>
             <div class="space-x-2 sm:space-x-16">
                 <span>
@@ -13,6 +13,14 @@
                     To:
                     <input type="date" v-model="endDate" @change="refreshList" class="">
                 </span>
+            </div>
+            <div>
+                <p>
+                    Average delay in timeframe: {{avgDelay}} Minutes
+                </p>
+                <p>
+                    Total delay in timeframe: {{totalDelay}} Minutes
+                </p>
             </div>
             <div class="space-x-10">
                 <button type="button" class="btn" @click="prevoiusPage">&lt;</button>
@@ -55,7 +63,7 @@
 import { defineComponent } from 'vue'
 import { TimeRecordsService } from "../services/TimeRecordsService"
 import { ResponseData } from "../types/ResponseData"
-import { format, addDays, subDays } from "date-fns"
+import { format, addDays, subDays, differenceInMinutes, } from "date-fns"
 
 let recordsService: TimeRecordsService;
 
@@ -63,21 +71,23 @@ let startStation: string;
 let endStation: string;
 
 let today = new Date();
-let startDate:  any = format(subDays(today, 7), 'yyyy-MM-dd');
+let startDate:  any = format(subDays(today, 3), 'yyyy-MM-dd');
 let endDate:    any = format(today, 'yyyy-MM-dd');
 
 export default defineComponent({
     name: "timeRecordsList",
     data() {
         return {
-            timeRecords:        [],
-            timeRecordsPage:    [],
+            timeRecords:        [] as any[],
+            timeRecordsPage:    [] as any[],
             title:              "",
             startDate:          startDate,
             endDate:            endDate,
             pageSize:           10,
             currentPage:        1,
             numberOfPages:      1,
+            avgDelay:           0,
+            totalDelay:         0,
         };
     },
     methods: {
@@ -89,7 +99,6 @@ export default defineComponent({
             )
             .then((res: ResponseData) => {
                 this.timeRecords = res.data;
-                this.timeRecords.reverse();
             })
             .catch((err: Error) => {
                 console.log(err);
@@ -100,6 +109,7 @@ export default defineComponent({
                 .then(() => {
                     this.numberOfPages = Math.ceil(this.timeRecords.length / this.pageSize);
                     this.paginate();
+                    this.calcAvgAndTotalDelay();
                 });
         },
         paginate() {
@@ -118,6 +128,18 @@ export default defineComponent({
             if(this.currentPage < this.numberOfPages){
                 this.currentPage++;
                 this.paginate();
+            }
+        },
+        calcAvgAndTotalDelay() {
+            this.totalDelay = 0;
+            
+            this.timeRecords.forEach( el => {
+                this.totalDelay += 
+                    differenceInMinutes(new Date(el.delay), new Date(el.departure));
+            });
+            if(this.timeRecords.length > 0) {
+                this.avgDelay = this.totalDelay / this.timeRecords.length;
+                this.avgDelay = Math.round((this.avgDelay + Number.EPSILON) * 1000) / 1000;
             }
         },
     },
