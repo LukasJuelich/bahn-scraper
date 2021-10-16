@@ -4,12 +4,13 @@ import { connect, disconnect} from "mongoose";
 import { timeRecord } from "./models/timeRecord";
 import { trainConnection } from "./models/trainConnections";
 import dotenv from "dotenv";
-import { format } from "date-fns";
+import { format, isBefore, } from "date-fns";
 
 dotenv.config({path: "./config/.env"});
 const dbUrl: any = process.env.DB_URL;
 
 const timeNow = new Date();
+let browser: puppeteer.Browser;
 
 const getScrapeUrl = (startStation: string, endStation: string): string => {
     const date = format(timeNow, 'dd.MM.yyyy');
@@ -18,23 +19,24 @@ const getScrapeUrl = (startStation: string, endStation: string): string => {
     let url = `https://reiseauskunft.bahn.de/bin/query.exe/dn?&start=1\
 &S=${startStation}&Z=${endStation}&date=${date}&time=${time}`
 
-    // console.log(url);
     return url;
 }
 
 const getHtmlWithPuppeteer = async (url: string) => {
-    let browser: puppeteer.Browser | undefined;
     let html: string;
+    let page: puppeteer.Page;
+
+    page = await browser.newPage();
+    await page.setDefaultNavigationTimeout(180000);
+
     try{
-        browser = await puppeteer.launch();   //for Raspberry Pi {executablePath: '/usr/bin/chromium-browser'}
-        const page: puppeteer.Page = await browser.newPage();
         await page.goto(url);
         html = await page.content();
-        await browser.close();
+        await page.close();
     }
     catch(err) {
-        if(browser)
-            await browser.close();
+        if(page)
+            await page.close();
         throw new Error("Error in puppeteer: " + err);
     }
 
@@ -84,11 +86,13 @@ const getDepartureAndDelay = (html: string) => {
 connect(dbUrl, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
+        useCreateIndex: true,
     })
     .then(() => {
         (async() => {
             const trainConnections = await trainConnection.find();
-
+            browser = await puppeteer.launch();   //for Raspberry Pi {executablePath: '/usr/bin/chromium-browser'}
+            
             await Promise.all(trainConnections.map(async (connection) => {
                 const html: string = await getHtmlWithPuppeteer(
                                         getScrapeUrl(
@@ -107,12 +111,17 @@ connect(dbUrl, {
                     delay:          delay,
                 });
 
-                await record.save();
+                if(!isBefore(record.delay, record.departure)) {
+                    await record.save();
+                }
             }))
             .then(() => {
+                browser.close();
                 disconnect();
             })
             .catch((err: Error) => {
+                browser.close();
+                disconnect();
                 throw new Error(err.message);
             });
         })();

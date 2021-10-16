@@ -6,7 +6,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "npm run build && node dist/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "scrape": "tsc && node ./dist/bahn_scraper.js"
   },
   "author": "lukas",
   "license": "ISC",
