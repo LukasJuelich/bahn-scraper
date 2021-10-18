@@ -9,7 +9,7 @@ test("if db url can be retrieved", () => {
     expect(getDbUrl()).toBeTruthy();
 });
 
-describe.only("mongoDB", () => {
+describe("mongoDB", () => {
     beforeAll(async () => {
         await connect(getDbUrl(), {
             useNewUrlParser: true,
@@ -24,7 +24,6 @@ describe.only("mongoDB", () => {
 
     test("if train connections can be retrieved", async () => {
         const trainConnections = await trainConnection.find();
-        console.log(trainConnection);
         expect(trainConnection).toBeTruthy();
     });
 })
