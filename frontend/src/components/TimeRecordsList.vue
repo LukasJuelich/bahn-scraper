@@ -21,6 +21,9 @@
                 <p>
                     Total delay in timeframe: {{totalDelay}} Minutes
                 </p>
+                <p>
+                    Highest delay in timeframe: {{highestDelay}} Minutes
+                </p>
             </div>
             <div class="space-x-10">
                 <button type="button" class="btn" @click="prevoiusPage">&lt;</button>
@@ -88,6 +91,7 @@ export default defineComponent({
             numberOfPages:      1,
             avgDelay:           0,
             totalDelay:         0,
+            highestDelay:       0,
         };
     },
     methods: {
@@ -135,8 +139,11 @@ export default defineComponent({
             this.totalDelay = 0;
             
             this.timeRecords.forEach( el => {
-                this.totalDelay += 
-                    differenceInMinutes(new Date(el.delay), new Date(el.departure));
+                let delay = differenceInMinutes(new Date(el.delay), new Date(el.departure));
+                
+                this.totalDelay += delay;
+                if(delay > this.highestDelay)
+                    this.highestDelay = delay;
             });
             if(this.timeRecords.length > 0) {
                 this.avgDelay = this.totalDelay / this.timeRecords.length;
