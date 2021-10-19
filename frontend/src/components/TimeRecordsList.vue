@@ -64,6 +64,7 @@ import { defineComponent } from 'vue'
 import { TimeRecordsService } from "../services/TimeRecordsService"
 import { ResponseData } from "../types/ResponseData"
 import { format, addDays, subDays, differenceInMinutes, } from "date-fns"
+import { TimeRecord, } from "../types/TimeRecord"
 
 let recordsService: TimeRecordsService;
 
@@ -71,16 +72,15 @@ let startStation: string;
 let endStation: string;
 
 let today = new Date();
-let startDate:  any = format(subDays(today, 3), 'yyyy-MM-dd');
-let endDate:    any = format(today, 'yyyy-MM-dd');
+let startDate:  string = format(subDays(today, 3), 'yyyy-MM-dd');
+let endDate:    string = format(today, 'yyyy-MM-dd');
 
 export default defineComponent({
     name: "timeRecordsList",
     data() {
         return {
-            timeRecords:        [] as any[],
-            timeRecordsPage:    [] as any[],
-            title:              "",
+            timeRecords:        [] as TimeRecord[],
+            timeRecordsPage:    [] as TimeRecord[],
             startDate:          startDate,
             endDate:            endDate,
             pageSize:           10,
@@ -108,6 +108,7 @@ export default defineComponent({
             this.retrieveTimeRecordsStartAndEndDate()
                 .then(() => {
                     this.numberOfPages = Math.ceil(this.timeRecords.length / this.pageSize);
+                    this.currentPage = 1;
                     this.paginate();
                     this.calcAvgAndTotalDelay();
                 });
@@ -139,7 +140,7 @@ export default defineComponent({
             });
             if(this.timeRecords.length > 0) {
                 this.avgDelay = this.totalDelay / this.timeRecords.length;
-                this.avgDelay = Math.round((this.avgDelay + Number.EPSILON) * 1000) / 1000;
+                this.avgDelay = Math.round(this.avgDelay* 100) / 100;
             }
         },
     },
