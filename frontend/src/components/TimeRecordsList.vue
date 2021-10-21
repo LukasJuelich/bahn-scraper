@@ -21,6 +21,9 @@
                 <p>
                     Total delay in timeframe: {{totalDelay}} Minutes
                 </p>
+                <p>
+                    Highest delay in timeframe: {{highestDelay}} Minutes
+                </p>
             </div>
             <div class="space-x-10">
                 <button type="button" class="btn" @click="prevoiusPage">&lt;</button>
@@ -64,6 +67,7 @@ import { defineComponent } from 'vue'
 import { TimeRecordsService } from "../services/TimeRecordsService"
 import { ResponseData } from "../types/ResponseData"
 import { format, addDays, subDays, differenceInMinutes, } from "date-fns"
+import { TimeRecord, } from "../types/TimeRecord"
 
 let recordsService: TimeRecordsService;
 
@@ -71,16 +75,15 @@ let startStation: string;
 let endStation: string;
 
 let today = new Date();
-let startDate:  any = format(subDays(today, 3), 'yyyy-MM-dd');
-let endDate:    any = format(today, 'yyyy-MM-dd');
+let startDate:  string = format(subDays(today, 3), 'yyyy-MM-dd');
+let endDate:    string = format(today, 'yyyy-MM-dd');
 
 export default defineComponent({
     name: "timeRecordsList",
     data() {
         return {
-            timeRecords:        [] as any[],
-            timeRecordsPage:    [] as any[],
-            title:              "",
+            timeRecords:        [] as TimeRecord[],
+            timeRecordsPage:    [] as TimeRecord[],
             startDate:          startDate,
             endDate:            endDate,
             pageSize:           10,
@@ -88,6 +91,7 @@ export default defineComponent({
             numberOfPages:      1,
             avgDelay:           0,
             totalDelay:         0,
+            highestDelay:       0,
         };
     },
     methods: {
@@ -108,6 +112,7 @@ export default defineComponent({
             this.retrieveTimeRecordsStartAndEndDate()
                 .then(() => {
                     this.numberOfPages = Math.ceil(this.timeRecords.length / this.pageSize);
+                    this.currentPage = 1;
                     this.paginate();
                     this.calcAvgAndTotalDelay();
                 });
@@ -134,12 +139,15 @@ export default defineComponent({
             this.totalDelay = 0;
             
             this.timeRecords.forEach( el => {
-                this.totalDelay += 
-                    differenceInMinutes(new Date(el.delay), new Date(el.departure));
+                let delay = differenceInMinutes(new Date(el.delay), new Date(el.departure));
+                
+                this.totalDelay += delay;
+                if(delay > this.highestDelay)
+                    this.highestDelay = delay;
             });
             if(this.timeRecords.length > 0) {
                 this.avgDelay = this.totalDelay / this.timeRecords.length;
-                this.avgDelay = Math.round((this.avgDelay + Number.EPSILON) * 1000) / 1000;
+                this.avgDelay = Math.round(this.avgDelay* 100) / 100;
             }
         },
     },
