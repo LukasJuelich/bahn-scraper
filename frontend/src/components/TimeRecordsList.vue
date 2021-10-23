@@ -51,7 +51,7 @@
                     {{ format(new Date(record.delay), 'HH:mm') }}
                 </td>
                 <td class="sm:px-4 px-2 py-2 text-red-700">
-                    {{ format(new Date(record.delay) - new Date(record.departure), 'mm') }}
+                    {{ differenceInMinutes(new Date(record.delay), new Date(record.departure)) }}
                 </td>
             </tr>
         </table>
@@ -96,6 +96,7 @@ export default defineComponent({
     },
     methods: {
         format,
+        differenceInMinutes,
         async retrieveTimeRecordsStartAndEndDate() {
             await recordsService.getWithStartAndEndDate(
                 new Date(this.startDate), 
@@ -137,14 +138,16 @@ export default defineComponent({
         },
         calcAvgAndTotalDelay() {
             this.totalDelay = 0;
-            
+            this.highestDelay = 0;
+
             this.timeRecords.forEach( el => {
                 let delay = differenceInMinutes(new Date(el.delay), new Date(el.departure));
                 
                 this.totalDelay += delay;
                 if(delay > this.highestDelay)
                     this.highestDelay = delay;
-            });
+                
+                });
             if(this.timeRecords.length > 0) {
                 this.avgDelay = this.totalDelay / this.timeRecords.length;
                 this.avgDelay = Math.round(this.avgDelay* 100) / 100;
